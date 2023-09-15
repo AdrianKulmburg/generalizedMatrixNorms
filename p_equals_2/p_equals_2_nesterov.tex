@@ -1,0 +1,67 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=4.521in,
+height=3.566in,
+at={(0.758in,0.481in)},
+scale only axis,
+xmin=2,
+xmax=14,
+xlabel style={font=\color{white!15!black}},
+xlabel={$\ell$ (in this case, $\ell=m$, $2n = m$)},
+ymin=1,
+ymax=1.4,
+ylabel style={font=\color{white!15!black}},
+ylabel={Approximation Ratio},
+axis background/.style={fill=white},
+title style={font=\bfseries},
+title={Worst-case approximation ratio for $q=$1, $p=2$, Nesterov Algorithm},
+axis x line*=bottom,
+axis y line*=left,
+legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=black, only marks, mark=o, mark options={solid, black}, forget plot]
+  table[row sep=crcr]{%
+2	1.00000000007605\\
+};
+\addplot [color=black, only marks, mark=o, mark options={solid, black}, forget plot]
+  table[row sep=crcr]{%
+4	1.08077534289903\\
+};
+\addplot [color=black, only marks, mark=o, mark options={solid, black}, forget plot]
+  table[row sep=crcr]{%
+6	1.0864054961085\\
+};
+\addplot [color=black, only marks, mark=o, mark options={solid, black}, forget plot]
+  table[row sep=crcr]{%
+8	1.09020720331261\\
+};
+\addplot [color=black, only marks, mark=o, mark options={solid, black}, forget plot]
+  table[row sep=crcr]{%
+10	1.08426093760592\\
+};
+\addplot [color=black, only marks, mark=o, mark options={solid, black}, forget plot]
+  table[row sep=crcr]{%
+12	1.08042115566149\\
+};
+\addplot [color=black, only marks, mark=o, mark options={solid, black}]
+  table[row sep=crcr]{%
+14	1.07003545644396\\
+};
+\addlegendentry{Worst-Case Results}
+
+\addplot [color=black]
+  table[row sep=crcr]{%
+2	1.2533141373155\\
+14	1.2533141373155\\
+};
+\addlegendentry{$\sqrt{\pi/2}$}
+
+\end{axis}
+\end{tikzpicture}%
