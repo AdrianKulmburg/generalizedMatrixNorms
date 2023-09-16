@@ -25,7 +25,7 @@ title("Worst-case approximation ratio for $q=$1, $p=$1", 'Interpreter', 'latex',
 xlabel("$\ell$", 'Interpreter', 'latex', 'FontSize', 13)
 ylabel("Approximation Ratio", 'Interpreter', 'latex', 'FontSize', 13)
 
-lgd = legend([data_points theory], {'Worst-Case Results', '$C_1\cdot\sqrt{\ell}$'}, 'Interpreter', 'latex', 'Location', 'northwest');
+lgd = legend([data_points theory], {'$\rho_{\max}$', '$C_1\cdot\sqrt{\ell}$'}, 'Interpreter', 'latex', 'Location', 'northwest');
 lgd.FontSize = 15;
 
-matlab2tikz('p_equals_1.tex')
+%matlab2tikz('p_equals_1.tex')

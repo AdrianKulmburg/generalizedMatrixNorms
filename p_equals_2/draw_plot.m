@@ -29,7 +29,7 @@ xlabel("$\ell$ (in this case, $\ell=m$, $2n = m$)", 'Interpreter', 'latex', 'Fon
 ylabel("Approximation Ratio", 'Interpreter', 'latex', 'FontSize', 13)
 ylim([1 1.4])
 
-lgd = legend([data_points theory], {'Worst-Case Results', '$\sqrt{\pi/2}$'}, 'Interpreter', 'latex', 'Location', 'northwest');
+lgd = legend([data_points theory], {'$\rho_{\max}$', '$\sqrt{\pi/2}$'}, 'Interpreter', 'latex', 'Location', 'northwest');
 lgd.FontSize = 15;
 
-matlab2tikz('p_equals_2_nesterov.tex')
+%matlab2tikz('p_equals_2_nesterov.tex')
