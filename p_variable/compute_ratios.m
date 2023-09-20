@@ -1,21 +1,20 @@
-p = 1.5;
-%p = 2;
+p = 2;
 %p = 10;
 
 
-n_list = 1:7;
-
+n_list = 1:6;
 
 parfor i=1:size(n_list,2)
     n = n_list(i);
+    rng(123456);
     run_tests(n,2*n,2*n,p);
 end
 
-function [x,fval] = run_tests(n,m1,m2,p)
+function [x,fval] = run_tests(n,ell,m,p)
 
-filename = [num2str(n),'_',num2str(m1),'_',num2str(m2),'_',num2str(p),'.mat'];
+filename = [num2str(n),'_',num2str(ell),'_',num2str(m),'_',num2str(p),'.mat'];
 
-N = n * (m1 + m2);
+N = n * (ell + m);
 Area = 10;
 
 
@@ -29,19 +28,21 @@ options = optimoptions('surrogateopt',...
 
 save(filename);
 
-function r = ratio(X,p)
+function r = ratio(X,p_star)
 
-X = reshape(X, [n m1+m2]);
-G = X(:,1:m1);
-H = X(:,m1+1:end);
+X = reshape(X, [n ell+m]);
+A_trans = X(:,1:ell);
+B_trans = X(:,ell+1:end);
 
-if rank(H) < n
+if rank(B_trans) < n
     r = 1;
     return
 end
 
-res_st = linear_relaxation(G, H, p);
-res_exact = exact(G, H, p);
+p_star = p/(p-1);
+
+res_st = linear_relaxation(A_trans, B_trans, p_star);
+res_exact = exact(A_trans, B_trans, p_star);
 
 if res_st >100*eps
     r = res_exact/res_st;
@@ -51,7 +52,7 @@ end
 end
 end
 
-function res = linear_relaxation(G, H, p)
+function res = linear_relaxation(A_trans, B_trans, p)
 
     function res_norm = L_1_p_T_norm(X)
         cost = 0;
@@ -66,23 +67,23 @@ function res = linear_relaxation(G, H, p)
     end
 
     options = optimoptions('fmincon','Display','none');
-    H_plus = pinv(H);
-    F = eye(size(H,2)) - H_plus * H;
+    B_trans_plus = pinv(B_trans);
+    F = eye(size(B_trans,2)) - B_trans_plus * B_trans;
     
     W0 = zeros(size(F));
 
-    cost_function = @(W) L_1_p_T_norm(H_plus * G + F * reshape(W, size(F)));
+    cost_function = @(W) L_1_p_T_norm(B_trans_plus * A_trans + F * reshape(W, size(F)));
     
     [~,res] = fmincon(cost_function, W0,[],[],[],[],[],[],[],options);
 
 end
 
-function res = exact(G1, G2, p)
-G = G1;
-norm_nu = @(nu) ellipsotopeNorm(G2, G*nu, p);
+function res = exact(A_trans, B_trans, p)
 
-% Number of generators of Z1
-m = size(G, 2);
+norm_nu = @(nu) ellipsotopeNorm(B_trans, A_trans*nu, p);
+
+% Number of generators
+m = size(A_trans, 2);
 
 % Create list of all combinations of generators we have to check (i.e., the
 % choices of the +- signs from above). Note that this is a better strategy
@@ -98,10 +99,10 @@ for iter = combinations'
 end
 end
 
-function res = ellipsotopeNorm(G,x,p)
+function res = ellipsotopeNorm(B_trans,x,p)
     p_norm = @(beta) norm(beta,p);
     options = optimoptions('fmincon','Display', 'none');
-    [~,res] = fmincon(p_norm, pinv(G)*x,[],[],G,x,[],[],[],options);
+    [~,res] = fmincon(p_norm, pinv(B_trans)*x,[],[],B_trans,x,[],[],[],options);
 end
 
 

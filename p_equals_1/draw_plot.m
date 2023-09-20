@@ -1,21 +1,21 @@
-n_range = 1:7;
-m_range = 2:20;
+n_range = 1:6;
+ell_range = 2:20;
 
 clf;
 hold on
 
-for m = m_range
+for ell = ell_range
     worst_case = 1;
     for n = n_range
         try
-            filename = ['data/',num2str(n),'_',num2str(m),'_',num2str(m),'.mat'];
+            filename = ['data/',num2str(n),'_',num2str(ell),'_',num2str(ell),'.mat'];
             load(filename)
             worst_case = max(worst_case, 1/fval);
         catch
             continue
         end
     end
-    data_points = plot(m,worst_case,'ok');
+    data_points = plot(ell,worst_case,'ok');
 end
 
 x = linspace(2, 20, 1000);

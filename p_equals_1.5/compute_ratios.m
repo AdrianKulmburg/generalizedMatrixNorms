@@ -1,15 +1,17 @@
-n_list = 1:6;
+p = 1.5;
 
+
+n_list = 1:6;
 
 parfor i=1:size(n_list,2)
     n = n_list(i);
     rng(123456);
-    run_tests(n,2*n,2*n);
+    run_tests(n,2*n,2*n,p);
 end
 
-function [x,fval] = run_tests(n,ell,m)
+function [x,fval] = run_tests(n,ell,m,p)
 
-filename = [num2str(n),'_',num2str(ell),'_',num2str(m),'.mat'];
+filename = [num2str(n),'_',num2str(ell),'_',num2str(m),'_',num2str(p),'.mat'];
 
 N = n * (ell + m);
 Area = 10;
@@ -21,11 +23,11 @@ options = optimoptions('surrogateopt',...
     'PlotFcn', [],...
     'MaxFunctionEvaluations', 1000); 
 
-[x, fval, exitflag, output, trials] = surrogateopt(@(X) ratio(X), -Area.*ones([N 1])', Area.*ones([N 1])', [], options);
+[x, fval, exitflag, output, trials] = surrogateopt(@(X) ratio(X,p), -Area.*ones([N 1])', Area.*ones([N 1])', [], options);
 
 save(filename);
 
-function r = ratio(X)
+function r = ratio(X,p_star)
 
 X = reshape(X, [n ell+m]);
 A_trans = X(:,1:ell);
@@ -36,8 +38,10 @@ if rank(B_trans) < n
     return
 end
 
-res_st = nesterov_relaxation(A_trans, B_trans);
-res_exact = exact(A_trans, B_trans);
+p_star = p/(p-1);
+
+res_st = linear_relaxation(A_trans, B_trans, p_star);
+res_exact = exact(A_trans, B_trans, p_star);
 
 if res_st >100*eps
     r = res_exact/res_st;
@@ -47,31 +51,35 @@ end
 end
 end
 
-function res = nesterov_relaxation(A_trans, B_trans)
-    A = A_trans';
-    B = B_trans';
-    
-    X = sdpvar(size(A,1), size(A,1));
-    
-    
-    cost = -trace(A * pinv(B) * pinv(B)' * A' * X);
-    constraints = [X >= 0];
-    for i=1:size(A,1)
-        constraints = [constraints X(i,i) == 1];
+function res = linear_relaxation(A_trans, B_trans, p)
+
+    function res_norm = L_1_p_T_norm(X)
+        cost = 0;
+        for i = 1:size(X,1)
+            factor = 0;
+            for j = 1:size(X,2)
+                factor = factor + abs(X(i,j));
+            end
+            cost = cost + factor^p;
+        end
+        res_norm = cost^(1/p);
     end
+
+    options = optimoptions('fmincon','Display','none');
+    B_trans_plus = pinv(B_trans);
+    F = eye(size(B_trans,2)) - B_trans_plus * B_trans;
     
-    options = sdpsettings('solver','sedumi','verbose',0,'allownonconvex',0);
+    W0 = zeros(size(F));
+
+    cost_function = @(W) L_1_p_T_norm(B_trans_plus * A_trans + F * reshape(W, size(F)));
     
-    yalmipOptimizer = optimizer(constraints,cost,options,[],{X});
-    
-    [sol, exitflag] = yalmipOptimizer();
-    
-    res = sqrt(abs(trace(A * pinv(B) * pinv(B)' * A' * sol)));
+    [~,res] = fmincon(cost_function, W0,[],[],[],[],[],[],[],options);
+
 end
 
+function res = exact(A_trans, B_trans, p)
 
-function res = exact(A_trans, B_trans)
-norm_nu = @(nu) ellipsotopeNorm(B_trans, A_trans*nu, 2);
+norm_nu = @(nu) ellipsotopeNorm(B_trans, A_trans*nu, p);
 
 % Number of generators of Z1
 m = size(A_trans, 2);

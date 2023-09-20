@@ -1,15 +1,17 @@
+p = 1.5;
+
 n_list = 1:6;
 
 
-parfor i=1:size(n_list,2)
+for i=1:size(n_list,2)
     n = n_list(i);
     rng(123456);
-    run_tests(n,2*n,2*n);
+    run_tests(n,2*n,2*n,p);
 end
 
-function [x,fval] = run_tests(n,ell,m)
+function [x,fval] = run_tests(n,ell,m,p)
 
-filename = [num2str(n),'_',num2str(ell),'_',num2str(m),'.mat'];
+filename = [num2str(n),'_',num2str(ell),'_',num2str(m),'_',num2str(p),'_nesterov.mat'];
 
 N = n * (ell + m);
 Area = 10;
@@ -35,9 +37,9 @@ if rank(B_trans) < n
     r = 1;
     return
 end
-
+p_star = p/(p-1);
 res_st = nesterov_relaxation(A_trans, B_trans);
-res_exact = exact(A_trans, B_trans);
+res_exact = exact(A_trans, B_trans, p_star);
 
 if res_st >100*eps
     r = res_exact/res_st;
@@ -70,10 +72,11 @@ function res = nesterov_relaxation(A_trans, B_trans)
 end
 
 
-function res = exact(A_trans, B_trans)
-norm_nu = @(nu) ellipsotopeNorm(B_trans, A_trans*nu, 2);
+function res = exact(A_trans, B_trans, p)
 
-% Number of generators of Z1
+norm_nu = @(nu) ellipsotopeNorm(B_trans, A_trans*nu, p);
+
+% Number of generators
 m = size(A_trans, 2);
 
 % Create list of all combinations of generators we have to check (i.e., the
@@ -95,5 +98,6 @@ function res = ellipsotopeNorm(B_trans,x,p)
     options = optimoptions('fmincon','Display', 'none');
     [~,res] = fmincon(p_norm, pinv(B_trans)*x,[],[],B_trans,x,[],[],[],options);
 end
+
 
 
