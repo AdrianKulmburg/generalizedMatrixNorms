@@ -12,7 +12,7 @@ end
 
 function [x,fval] = run_tests(n,ell,m,p)
 
-filename = [num2str(n),'_',num2str(ell),'_',num2str(m),'_',num2str(p),'.mat'];
+filename = ['data/',num2str(n),'_',num2str(ell),'_',num2str(m),'_',num2str(p),'.mat'];
 
 N = n * (ell + m);
 Area = 10;
