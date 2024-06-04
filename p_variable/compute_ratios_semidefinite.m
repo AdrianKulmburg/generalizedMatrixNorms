@@ -1,7 +1,9 @@
-p = 1.5;
-
-
 n_list = 1:6;
+
+p = 1.5;
+%p = 2;
+
+yalmip('clear')
 
 parfor i=1:size(n_list,2)
     n = n_list(i);
@@ -11,7 +13,7 @@ end
 
 function [x,fval] = run_tests(n,ell,m,p)
 
-filename = ['data/',num2str(n),'_',num2str(ell),'_',num2str(m),'_',num2str(p),'.mat'];
+filename = ['data/',num2str(p),'_',num2str(n),'_',num2str(ell),'_',num2str(m),'_semidefinite.mat'];
 
 N = n * (ell + m);
 Area = 10;
@@ -27,7 +29,7 @@ options = optimoptions('surrogateopt',...
 
 save(filename);
 
-function r = ratio(X,p_star)
+function r = ratio(X,p)
 
 X = reshape(X, [n ell+m]);
 A_trans = X(:,1:ell);
@@ -40,7 +42,7 @@ end
 
 p_star = p/(p-1);
 
-res_st = linear_relaxation(A_trans, B_trans, p_star);
+res_st = semidefinite_relaxation(A_trans, B_trans, max([2 p]));
 res_exact = exact(A_trans, B_trans, p_star);
 
 if res_st >100*eps
@@ -51,34 +53,32 @@ end
 end
 end
 
-function res = linear_relaxation(A_trans, B_trans, p)
+function res = semidefinite_relaxation(A_trans, B_trans, p)
 
-    function res_norm = L_1_p_T_norm(X)
-        cost = 0;
-        for i = 1:size(X,1)
-            factor = 0;
-            for j = 1:size(X,2)
-                factor = factor + abs(X(i,j));
-            end
-            cost = cost + factor^p;
-        end
-        res_norm = cost^(1/p);
+    A = A_trans';
+    B = B_trans';
+    
+    v = sdpvar(size(A,1), 1);
+    w = sdpvar(size(B,1), 1);
+    
+    
+    cost = 0.5*(norm(v,1) + norm(w, p/(p-2)));
+    constraints = [[diag(v) -A; -A' B'*diag(w)*B] >= 0];
+    
+    persistent options
+    if isempty(options)
+        options = sdpsettings('solver','mosek','verbose',0,'allownonconvex',0);
     end
-
-    options = optimoptions('fmincon','Display','none');
-    B_trans_plus = pinv(B_trans);
-    F = eye(size(B_trans,2)) - B_trans_plus * B_trans;
     
-    W0 = zeros(size(F));
-
-    cost_function = @(W) L_1_p_T_norm(B_trans_plus * A_trans + F * reshape(W, size(F)));
+    yalmipOptimizer = optimize(constraints,cost,options);
     
-    [~,res] = fmincon(cost_function, W0,[],[],[],[],[],[],[],options);
-
+    yalmipOptimizer();
+    
+    res = value(cost);
 end
 
-function res = exact(A_trans, B_trans, p)
 
+function res = exact(A_trans, B_trans, p)
 norm_nu = @(nu) ellipsotopeNorm(B_trans, A_trans*nu, p);
 
 % Number of generators of Z1
@@ -103,5 +103,3 @@ function res = ellipsotopeNorm(B_trans,x,p)
     options = optimoptions('fmincon','Display', 'none');
     [~,res] = fmincon(p_norm, pinv(B_trans)*x,[],[],B_trans,x,[],[],[],options);
 end
-
-

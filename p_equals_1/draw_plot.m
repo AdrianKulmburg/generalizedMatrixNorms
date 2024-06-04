@@ -21,11 +21,10 @@ end
 x = linspace(2, 20, 1000);
 theory = plot(x, sqrt(x), 'k');
 
-title("Worst-case approximation ratio for $q=$1, $p=$1", 'Interpreter', 'latex', 'FontSize', 13)
-xlabel("$\ell$", 'Interpreter', 'latex', 'FontSize', 13)
-ylabel("Approximation Ratio", 'Interpreter', 'latex', 'FontSize', 13)
+title("Worst-case approximation ratio for $q=1$, $p=1$", 'Interpreter', 'latex')
+xlabel("$\ell$", 'Interpreter', 'latex')
+ylabel("Approximation Ratio", 'Interpreter', 'latex')
 
 lgd = legend([data_points theory], {'$\rho_{\max}$', '$C_1\cdot\sqrt{\ell}$'}, 'Interpreter', 'latex', 'Location', 'northwest');
-lgd.FontSize = 15;
 
 %matlab2tikz('p_equals_1.tex')
